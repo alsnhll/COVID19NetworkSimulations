@@ -1,0 +1,4 @@
+absl-py
+jax
+jaxlib
+tqdm
