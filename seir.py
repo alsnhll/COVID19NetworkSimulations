@@ -121,7 +121,9 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
       individual i infects j. 2) A list of DeviceArrays [rows, cols, ps], where
       the ith entries are the probability ps[i] that individual rows[i] infects
       individual cols[i].
-    total_steps: The total number of updates to the Markov chain.
+        total_steps: The total number of updates to the Markov chain. Else can be
+      a tuple (max_steps, break_fn), where break_fn is a function returning
+      a bool indicating whether the simulation should terminate.
     state_length_sampler: A function taking a PRNGKey that returns a
       DeviceArray of shape [n]. Each entry is an iid sample from the distibution
       specifying the amount of time that the individual remains infected.
@@ -149,10 +151,12 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
   """
   if any(infection_probabilities[state] > 0 for state in NON_INFECTIOUS_STATES):
     raise ValueError('Only states i1, i2, and i3 are infectious! Other entries'
-                     ' of infection_probabilities must be 0.')
+                     ' of infection_probabilities must be 0. Got {}.'.format(
+                         infection_probabilities))
   if any(recovery_probabilities[state] > 0 for state in NON_INFECTIOUS_STATES):
     raise ValueError('Recovery can only occur from states i1, i2, and i3! Other'
-                     ' entries of recovery_probabilities must be 0.')
+                     ' entries of recovery_probabilities must be 0. Got '
+                     '{}.'.format(recovery_probabilities))
 
   if isinstance(key, int):
     key = random.PRNGKey(key)
@@ -160,6 +164,11 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
   interaction_step_ = interaction_step
   if isinstance(w, list):
     interaction_step_ = sparse_interaction_step
+    
+  if isinstance(total_steps, tuple):
+    total_steps, break_fn = total_steps
+  else:
+    break_fn = lambda *args, **kwargs: False
 
   def eval_fn(t, state, state_timer, states_cumulative, history):
     del t, state_timer
@@ -191,6 +200,9 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
         0, epoch_len, step, (key, state, state_timer, states_cumulative))
     history = eval_fn(
         epoch*epoch_len, state, state_timer, states_cumulative, history)
+    if break_fn(
+        epoch*epoch_len, state, state_timer, states_cumulative, history):
+      break
 
   return key, state, state_timer, states_cumulative, history
 
@@ -209,7 +221,8 @@ def simulate_intervention(
     ws: A list of DeviceArrays of shape [n, n], where n is the population size.
       The dynamics will be simulated on each strucutre sequentially.
     step_intervals: A list of ints indicating the number fo simulation steps
-      performed on each population strucutre.
+      performed on each population strucutre. Else a list of tuples of the form
+      (max_steps, break_fn) see simulate function above.
     state_length_sampler: See simulate function above.
     infection_probabilities: See simulate function above.
     recovery_probabilities: See simulate function above.
