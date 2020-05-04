@@ -243,7 +243,8 @@ def simulate_intervention(
   for t, (w, total_steps) in enumerate(zip(ws, step_intervals)):
     key, state, state_timer, states_cumulative, history_ = simulate(
         w, total_steps, state_length_sampler, infection_probabilities,
-        recovery_probabilities, state, state_timer, key, epoch_len)
+        recovery_probabilities, state, state_timer, key, epoch_len,
+        states_cumulative)
     history.extend(history_)
     print('Completed interval {} of {}'.format(t+1, len(ws)))
 
