@@ -15,6 +15,7 @@ from jax.nn import relu
 import jax.numpy as np
 from jax.ops import index_add
 import tqdm
+import matplotlib.pyplot as plt
 
 SUSCEPTIBLE = 0
 EXPOSED = 1
