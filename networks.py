@@ -21,8 +21,8 @@ def create_fully_connected(pop, dist_groups, indices):
     data = []
     current_indx = 0
     for size in dist_groups:
-        group = indices[int(current_index):int(current_index+size)]
-        current_index += size
+        group = indices[int(current_indx):int(current_indx+size)]
+        current_indx += size
         comb = list(itertools.combinations(group,2))
         for i,j in comb:
             rows.extend([i,j])
