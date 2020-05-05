@@ -4,7 +4,7 @@ import math
 import itertools
 import scipy.stats as ss
 
-def create_groups(pop, dist_groups, indices):
+def create_fully_connected(pop, dist_groups, indices):
     """ Divide the subset of the total population as given by the indices into fully connected groups 
     depending upon their distribution of sizes.
     @param pop : Total size of the population
