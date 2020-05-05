@@ -1,3 +1,9 @@
+""" Functions to create the various layers of the network """
+import numpy as np2
+import math
+import itertools
+import scipy.stats as ss
+
 def create_groups(pop, dist_groups, indices):
     """ Divide the subset of the total population as given by the indices into fully connected groups 
     depending upon their distribution of sizes.
