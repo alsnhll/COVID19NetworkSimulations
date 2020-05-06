@@ -13,8 +13,9 @@ from jax import random
 from jax.lax import fori_loop
 from jax.nn import relu
 import jax.numpy as np
-from jax.ops import index_add
+from jax.ops import index_add, index_update, index
 import tqdm
+import matplotlib.pyplot as plt
 
 SUSCEPTIBLE = 0
 EXPOSED = 1
@@ -250,14 +251,16 @@ def simulate_intervention(
 
   return key, state, state_timer, states_cumulative, history
 
-def plot_single(ymax,scale,int=0):
+def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   """
   plots the output (prevalence) from a single simulation, with or without an intervention
-  ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
-  scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
+  history: 2D array of values for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  ymax : Optional, highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
+  scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
-  tvec=np.arange(0,Tmax,delta_t)
  
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
@@ -281,15 +284,16 @@ def plot_single(ymax,scale,int=0):
   plt.tight_layout()
   plt.show()
 
-def plot_single_cumulative(ymax,scale,int=0):
+def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   """
   plots the output (cumulative prevalence) from a single simulation, with or without an intervention
-  ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
-  scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
+  cumulative_history: 2D array of values for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  ymax : Optional, highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
+  scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
-
-  tvec=np.arange(0,Tmax,delta_t)
 
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
@@ -312,10 +316,18 @@ def plot_single_cumulative(ymax,scale,int=0):
   plt.ylabel("Cumulative number")
   plt.tight_layout()
   plt.show()
+
+def get_daily(cumulative_history,tvec):
+  """ 
+  Gets the daily incidence for a single run
+  cumulative_history: 2D array of cumulative values for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  """
   
-def get_daily():
-  """ gets the daily incidence for a single run"""
-  
+  Tmax=int(tvec[-1])
+  delta_t=tvec[1]-tvec[0]
+  total_steps=int(Tmax/delta_t)
+
   # first pick out entries corresponding to each day
   per_day=int(1/delta_t) # number of entries per day
   days_ind=np.arange(start=0,stop=total_steps,step=per_day)
@@ -326,15 +338,18 @@ def get_daily():
 
   return daily_incidence
 
-def plot_single_daily(ymax,scale,int=0):
+
+def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0):
   """
   plots the output (daily incidence) from a single simulation, with or without an intervention
-  ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
-  scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
+  daily_incidence: 2D array of values for each variable at each timepoint
+  ymax : Optional, highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
+  scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
 
-  tvec=np.arange(1,Tmax)
+  tvec=np.arange(1,len(daily_incidence)+1)
 
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
@@ -357,13 +372,18 @@ def plot_single_daily(ymax,scale,int=0):
   plt.ylabel("Daily incidence")
   plt.tight_layout()
   plt.show()
-  
-def get_peaks_single(int=0):
+
+def get_peaks_single(history,tvec,int=0,Tint=0):
 
   """
   calculates the peak prevalence for a single run, with or without an intervention
+  history: 2D array of values for each variable at each timepoint
+  tvec: 1D vector of timepoints
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
+
+  delta_t=tvec[1]-tvec[0]
 
   if int==0:
     time_int=0
@@ -394,7 +414,7 @@ def get_peaks_single(int=0):
   
   # First time when all infections go extinct
   all_cases=history[:, 1]+history[:, 2]+history[:, 3]+history[:, 4]
-  extinct=np.where(n*all_cases == 0)[0]
+  extinct=np.where(all_cases == 0)[0]
   if len(extinct) != 0:
     extinction_time=np.min(extinct)*delta_t - time_int
     print('Time of extinction of all infections: {:3.1f} days'.format(extinction_time))
@@ -403,11 +423,13 @@ def get_peaks_single(int=0):
  
   return
 
-def get_peaks_single_daily(int=0):
+def get_peaks_single_daily(daily_incidence,int=0,Tint=0):
 
   """
   calculates the peak daily incidence for a single run, with or without an intervention
+  daily_incidence: 2D array of values for each variable at each timepoint
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
 
   if int==0:
@@ -437,29 +459,28 @@ def get_peaks_single_daily(int=0):
 
   return
 
-def plot_iter(ymax,scale,int=0):
+def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0):
 
   """
   plots the output (prevalence) from a multiple simulation, with or without an intervention. Shows all trajectories
+  soln: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  n: total population size
   ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
 
-  tvec=np.arange(0,Tmax,delta_t)
+  number_trials=np.shape(soln)[0]
 
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
 
   for i in range(number_trials):
-    plt.plot(tvec,soln_s[i]*scale,color='C0')
-    plt.plot(tvec,soln_e[i]*scale,color='C1')
-    plt.plot(tvec,soln_i1[i]*scale,color='C2')
-    plt.plot(tvec,soln_i2[i]*scale,color='C3')
-    plt.plot(tvec,soln_i3[i]*scale,color='C4')
-    plt.plot(tvec,soln_r[i]*scale,color='C5')
-    plt.plot(tvec,soln_d[i]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -468,14 +489,9 @@ def plot_iter(ymax,scale,int=0):
 
   plt.subplot(122)
   for i in range(number_trials):
-    plt.plot(tvec,soln_s[i]*scale,color='C0')
-    plt.plot(tvec,soln_e[i]*scale,color='C1')
-    plt.plot(tvec,soln_i1[i]*scale,color='C2')
-    plt.plot(tvec,soln_i2[i]*scale,color='C3')
-    plt.plot(tvec,soln_i3[i]*scale,color='C4')
-    plt.plot(tvec,soln_r[i]*scale,color='C5')
-    plt.plot(tvec,soln_d[i]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
@@ -484,29 +500,28 @@ def plot_iter(ymax,scale,int=0):
   plt.semilogy()
   plt.tight_layout()
   plt.show()
-  
-def plot_iter_cumulative(ymax,scale,int=0):
+
+def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows all trajectories
+  soln_cum: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  n: total population size
   ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
 
-  tvec=np.arange(0,Tmax,delta_t)
+  number_trials=np.shape(soln_cum)[0]
 
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
   for i in range(number_trials):
-    plt.plot(tvec,soln_cum_s[i]*scale,color='C0')
-    plt.plot(tvec,soln_cum_e[i]*scale,color='C1')
-    plt.plot(tvec,soln_cum_i1[i]*scale,color='C2')
-    plt.plot(tvec,soln_cum_i2[i]*scale,color='C3')
-    plt.plot(tvec,soln_cum_i3[i]*scale,color='C4')
-    plt.plot(tvec,soln_cum_r[i]*scale,color='C5')
-    plt.plot(tvec,soln_cum_d[i]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln_cum[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -515,14 +530,9 @@ def plot_iter_cumulative(ymax,scale,int=0):
 
   plt.subplot(122)
   for i in range(number_trials):
-    plt.plot(tvec,soln_cum_s[i]*scale,color='C0')
-    plt.plot(tvec,soln_cum_e[i]*scale,color='C1')
-    plt.plot(tvec,soln_cum_i1[i]*scale,color='C2')
-    plt.plot(tvec,soln_cum_i2[i]*scale,color='C3')
-    plt.plot(tvec,soln_cum_i3[i]*scale,color='C4')
-    plt.plot(tvec,soln_cum_r[i]*scale,color='C5')
-    plt.plot(tvec,soln_cum_d[i]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln_cum[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'RD'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
@@ -531,47 +541,35 @@ def plot_iter_cumulative(ymax,scale,int=0):
   plt.semilogy()
   plt.tight_layout()
   plt.show()
-  
-def plot_iter_shade(ymax,scale,int=0,loCI=5,upCI=95):
+
+def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
 
   """
   plots the output (prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
+  soln: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  n: total population size
   ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
   """
 
-  tvec=np.arange(0,Tmax,delta_t)
-
-  sol_s = np.array(soln_s)
-  sol_e = np.array(soln_e)
-  sol_i1 = np.array(soln_i1)
-  sol_i2 = np.array(soln_i2)
-  sol_i3 = np.array(soln_i3)
-  sol_d = np.array(soln_d)
-  sol_r = np.array(soln_r)
+  soln_avg=np.average(soln,axis=0)
+  soln_loCI=np.percentile(soln,loCI,axis=0)
+  soln_upCI=np.percentile(soln,upCI,axis=0)
  
   # linear scale
   # add averages
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
-  plt.plot(tvec, np.average(sol_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(sol_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(sol_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(sol_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(sol_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(sol_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(sol_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(sol_s,loCI,axis=0)*scale, np.percentile(sol_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_e,loCI,axis=0)*scale, np.percentile(sol_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i1,loCI,axis=0)*scale, np.percentile(sol_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i2,loCI,axis=0)*scale, np.percentile(sol_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i3,loCI,axis=0)*scale, np.percentile(sol_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_r,loCI,axis=0)*scale, np.percentile(sol_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_d,loCI,axis=0)*scale, np.percentile(sol_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -581,22 +579,12 @@ def plot_iter_shade(ymax,scale,int=0,loCI=5,upCI=95):
   # log scale
   # add averages
   plt.subplot(122)
-  plt.plot(tvec, np.average(sol_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(sol_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(sol_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(sol_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(sol_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(sol_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(sol_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(sol_s,loCI,axis=0)*scale, np.percentile(sol_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_e,loCI,axis=0)*scale, np.percentile(sol_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i1,loCI,axis=0)*scale, np.percentile(sol_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i2,loCI,axis=0)*scale, np.percentile(sol_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i3,loCI,axis=0)*scale, np.percentile(sol_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_r,loCI,axis=0)*scale, np.percentile(sol_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_d,loCI,axis=0)*scale, np.percentile(sol_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
@@ -604,8 +592,9 @@ def plot_iter_shade(ymax,scale,int=0,loCI=5,upCI=95):
   plt.ylabel("Number")
   plt.semilogy()
   plt.tight_layout()
-  
-def plot_iter_cumulative_shade(ymax,scale,int=0,loCI=5,upCI=95):
+  plt.show()
+
+def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
@@ -615,36 +604,20 @@ def plot_iter_cumulative_shade(ymax,scale,int=0,loCI=5,upCI=95):
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
   """
 
-  tvec=np.arange(0,Tmax,delta_t)
-
-  sol_s = np.array(soln_cum_s)
-  sol_e = np.array(soln_cum_e)
-  sol_i1 = np.array(soln_cum_i1)
-  sol_i2 = np.array(soln_cum_i2)
-  sol_i3 = np.array(soln_cum_i3)
-  sol_d = np.array(soln_cum_d)
-  sol_r = np.array(soln_cum_r)
+  soln_avg=np.average(soln_cum,axis=0)
+  soln_loCI=np.percentile(soln_cum,loCI,axis=0)
+  soln_upCI=np.percentile(soln_cum,upCI,axis=0)
  
   # linear scale
   # add averages
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
-  plt.plot(tvec, np.average(sol_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(sol_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(sol_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(sol_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(sol_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(sol_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(sol_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(sol_s,loCI,axis=0)*scale, np.percentile(sol_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_e,loCI,axis=0)*scale, np.percentile(sol_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i1,loCI,axis=0)*scale, np.percentile(sol_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i2,loCI,axis=0)*scale, np.percentile(sol_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i3,loCI,axis=0)*scale, np.percentile(sol_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_r,loCI,axis=0)*scale, np.percentile(sol_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_d,loCI,axis=0)*scale, np.percentile(sol_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -654,22 +627,12 @@ def plot_iter_cumulative_shade(ymax,scale,int=0,loCI=5,upCI=95):
   # log scale
   # add averages
   plt.subplot(122)
-  plt.plot(tvec, np.average(sol_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(sol_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(sol_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(sol_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(sol_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(sol_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(sol_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(sol_s,loCI,axis=0)*scale, np.percentile(sol_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_e,loCI,axis=0)*scale, np.percentile(sol_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i1,loCI,axis=0)*scale, np.percentile(sol_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i2,loCI,axis=0)*scale, np.percentile(sol_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_i3,loCI,axis=0)*scale, np.percentile(sol_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_r,loCI,axis=0)*scale, np.percentile(sol_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(sol_d,loCI,axis=0)*scale, np.percentile(sol_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
@@ -678,78 +641,56 @@ def plot_iter_cumulative_shade(ymax,scale,int=0,loCI=5,upCI=95):
   plt.semilogy()
   plt.tight_layout()
   plt.show()
-  
-def get_daily_iter():
+
+def get_daily_iter(soln_cum,tvec):
 
   """
   Calculates daily incidence for multiple runs
+  soln_cum: 2D array of cumulative values for each variable at each timepoint
+  tvec: 1D vector of timepoints
   """
+  
+  Tmax=int(tvec[-1])
+  delta_t=tvec[1]-tvec[0]
+  total_steps=int(Tmax/delta_t)
 
   # get daily incidence
-  sol_s = np.array(soln_cum_s)
-  sol_e = np.array(soln_cum_e)
-  sol_i1 = np.array(soln_cum_i1)
-  sol_i2 = np.array(soln_cum_i2)
-  sol_i3 = np.array(soln_cum_i3)
-  sol_d = np.array(soln_cum_d)
-  sol_r = np.array(soln_cum_r)
-  
+
   per_day=int(1/delta_t) # number of entries per day
   days_ind=np.arange(start=0,stop=total_steps,step=per_day)
 
-  # S
-  daily_cumulative_history=sol_s[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_s=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
+  soln_inc=np.zeros((np.shape(soln_cum)[0],Tmax-1,np.shape(soln_cum)[2]))
 
-  # E
-  daily_cumulative_history=sol_e[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_e=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
+  for i in range(0,7):
+    daily_cumulative_history=soln_cum[:,days_ind,i] # first pick out entries corresponding to each day
+    soln_inc=index_add(soln_inc,index[:,:,i],daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)]) # then get differences between each day
 
-  # I1
-  daily_cumulative_history=sol_i1[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_i1=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
+  return soln_inc
 
-  # I2
-  daily_cumulative_history=sol_i2[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_i2=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
-
-  # I3
-  daily_cumulative_history=sol_i3[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_i3=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
-
-  # D
-  daily_cumulative_history=sol_d[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_d=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
-
-  # R
-  daily_cumulative_history=sol_r[:,days_ind] # first pick out entries corresponding to each day
-  soln_inc_r=daily_cumulative_history[:,1:Tmax]-daily_cumulative_history[:,0:(Tmax-1)] # then get differences between each day
-
-  return soln_inc_s, soln_inc_e, soln_inc_i1, soln_inc_i2, soln_inc_i3, soln_inc_d, soln_inc_r
-
-def plot_iter_daily(ymax,scale,int=0):
+def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1):
 
   """
   plots the output (daily incidence) from a multiple simulation, with or without an intervention. Shows all trajectories
+  soln_inc: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  n: total population size
   ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   """
 
-  tvec=np.arange(1,Tmax)
+  number_trials=np.shape(soln_inc)[0]
+
+  tvec=np.arange(1,np.shape(soln_inc)[1]+1)
 
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
 
   for i in range(number_trials):
-    plt.plot(tvec,soln_inc_s[i,:]*scale,color='C0')
-    plt.plot(tvec,soln_inc_e[i,:]*scale,color='C1')
-    plt.plot(tvec,soln_inc_i1[i,:]*scale,color='C2')
-    plt.plot(tvec,soln_inc_i2[i,:]*scale,color='C3')
-    plt.plot(tvec,soln_inc_i3[i,:]*scale,color='C4')
-    plt.plot(tvec,soln_inc_r[i,:]*scale,color='C5')
-    plt.plot(tvec,soln_inc_d[i,:]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln_inc[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -758,14 +699,9 @@ def plot_iter_daily(ymax,scale,int=0):
 
   plt.subplot(122)
   for i in range(number_trials):
-    plt.plot(tvec,soln_inc_s[i,:]*scale,color='C0')
-    plt.plot(tvec,soln_inc_e[i,:]*scale,color='C1')
-    plt.plot(tvec,soln_inc_i1[i,:]*scale,color='C2')
-    plt.plot(tvec,soln_inc_i2[i,:]*scale,color='C3')
-    plt.plot(tvec,soln_inc_i3[i,:]*scale,color='C4')
-    plt.plot(tvec,soln_inc_r[i,:]*scale,color='C5')
-    plt.plot(tvec,soln_inc_d[i,:]*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+    plt.gca().set_prop_cycle(None)
+    plt.plot(tvec,soln_inc[i,:,:]*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
@@ -774,73 +710,61 @@ def plot_iter_daily(ymax,scale,int=0):
   plt.semilogy()
   plt.tight_layout()
   plt.show()
-  
-def plot_iter_daily_shade(ymax,scale,int=0,loCI=5,upCI=95):
+
+def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
+  soln_inc: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  n: total population size
   ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
   """
 
-  tvec=np.arange(1,Tmax)
+  tvec=np.arange(1,np.shape(soln_inc)[1]+1)
+
+  soln_avg=np.average(soln_inc,axis=0)
+  soln_loCI=np.percentile(soln_inc,loCI,axis=0)
+  soln_upCI=np.percentile(soln_inc,upCI,axis=0)
 
   # linear scale
   # add averages
   plt.figure(figsize=(2*6.4, 4.0))
   plt.subplot(121)
-  plt.plot(tvec, np.average(soln_inc_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(soln_inc_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(soln_inc_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(soln_inc_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(soln_inc_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(soln_inc_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(soln_inc_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(soln_inc_s,loCI,axis=0)*scale, np.percentile(soln_inc_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_e,loCI,axis=0)*scale, np.percentile(soln_inc_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i1,loCI,axis=0)*scale, np.percentile(soln_inc_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i2,loCI,axis=0)*scale, np.percentile(soln_inc_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i3,loCI,axis=0)*scale, np.percentile(soln_inc_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_r,loCI,axis=0)*scale, np.percentile(soln_inc_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_d,loCI,axis=0)*scale, np.percentile(soln_inc_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
   plt.xlabel("Time (days)")
-  plt.ylabel("Cumulative number")
+  plt.ylabel("Daily incidence")
 
   # log scale
   # add averages
   plt.subplot(122)
-  plt.plot(tvec, np.average(soln_inc_s,axis=0)*scale,color='C0')
-  plt.plot(tvec, np.average(soln_inc_e,axis=0)*scale, color='C1')
-  plt.plot(tvec, np.average(soln_inc_i1,axis=0)*scale,color='C2')
-  plt.plot(tvec, np.average(soln_inc_i2,axis=0)*scale,color='C3')
-  plt.plot(tvec, np.average(soln_inc_i3,axis=0)*scale,color='C4')
-  plt.plot(tvec, np.average(soln_inc_r,axis=0)*scale,color='C5')
-  plt.plot(tvec, np.average(soln_inc_d,axis=0)*scale,color='C6')
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'D'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.plot(tvec,soln_avg*scale)
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   # add ranges
-  plt.fill_between(tvec,np.percentile(soln_inc_s,loCI,axis=0)*scale, np.percentile(soln_inc_s,upCI,axis=0)*scale, color='C0', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_e,loCI,axis=0)*scale, np.percentile(soln_inc_e,upCI,axis=0)*scale, color='C1', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i1,loCI,axis=0)*scale, np.percentile(soln_inc_i1,upCI,axis=0)*scale, color='C2', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i2,loCI,axis=0)*scale, np.percentile(soln_inc_i2,upCI,axis=0)*scale, color='C3', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_i3,loCI,axis=0)*scale, np.percentile(soln_inc_i3,upCI,axis=0)*scale, color='C4', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_r,loCI,axis=0)*scale, np.percentile(soln_inc_r,upCI,axis=0)*scale, color='C5', alpha=0.3)
-  plt.fill_between(tvec,np.percentile(soln_inc_d,loCI,axis=0)*scale, np.percentile(soln_inc_d,upCI,axis=0)*scale, color='C6', alpha=0.3)
+  plt.gca().set_prop_cycle(None)
+  for i in range(0,7):
+    plt.fill_between(tvec,soln_loCI[:,i]*scale,soln_upCI[:,i]*scale,alpha=0.3)
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
   plt.xlabel("Time (days)")
-  plt.ylabel("Cumulative number")
+  plt.ylabel("Daily incidence")
   plt.semilogy()
   plt.tight_layout()
   plt.show()
-  
+
 def get_extinction_time(sol, t):
   """ 
   Calculates the extinction time each of multiple runs
@@ -861,71 +785,75 @@ def get_extinction_time(sol, t):
 
   return extinction_time
 
-def get_peaks_iter(int=0,loCI=5,upCI=95):
+def get_peaks_iter(soln,tvec,int=0,Tint=0,loCI=5,upCI=95):
 
   """
   calculates the peak prevalence for a multiple runs, with or without an intervention
+  soln: 3D array of values for each iteration for each variable at each timepoint
+  tvec: 1D vector of timepoints
+  ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
+  scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
   """
+
+  delta_t=tvec[1]-tvec[0]
 
   if int==0:
     time_int=0
   else:
     time_int=Tint
 
-  sol_s = np.array(soln_s)
-  sol_e = np.array(soln_e)
-  sol_i1 = np.array(soln_i1)
-  sol_i2 = np.array(soln_i2)
-  sol_i3 = np.array(soln_i3)
-  sol_d = np.array(soln_d)
-  sol_r = np.array(soln_r)
-  sol_c = sol_e + sol_i1 + sol_i2 + sol_i3
+  all_cases=soln[:,:,1]+soln[:,:,2]+soln[:,:,3]+soln[:,:,4]
 
   # Final values
   print('Final recovered: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
-      100 * np.average(sol_r[:,-1]), 100*np.percentile(sol_r[:,-1],loCI), 100*np.percentile(sol_r[:,-1],upCI)))
+      100 * np.average(soln[:,-1,6]), 100*np.percentile(soln[:,-1,6],loCI), 100*np.percentile(soln[:,-1,6],upCI)))
   print('Final deaths: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
-      100 * np.average(sol_d[:,-1]), 100*np.percentile(sol_d[:,-1],loCI), 100*np.percentile(sol_d[:,-1],upCI)))
+      100 * np.average(soln[:,-1,5]), 100*np.percentile(soln[:,-1,5],loCI), 100*np.percentile(soln[:,-1,5],upCI)))
   print('Remaining infections: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
-      100*np.average(sol_c[:,-1]),100*np.percentile(sol_c[:,-1],loCI),100*np.percentile(sol_c[:,-1],upCI)))
+      100*np.average(all_cases[:,-1]),100*np.percentile(all_cases[:,-1],loCI),100*np.percentile(all_cases[:,-1],upCI)))
 
   # Peak prevalence
-  peaks=np.amax(sol_i1,axis=1)
+  peaks=np.amax(soln[:,:,2],axis=1)
   print('Peak I1: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
-  peaks=np.amax(sol_i2,axis=1)
+  peaks=np.amax(soln[:,:,3],axis=1)
   print('Peak I2: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
-  peaks=np.amax(sol_i3,axis=1)
+  peaks=np.amax(soln[:,:,4],axis=1)
   print('Peak I3: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
   
   # Timing of peaks
-  tpeak=np.argmax(sol_i1,axis=1)*delta_t-time_int
+  tpeak=np.argmax(soln[:,:,2],axis=1)*delta_t-time_int
   print('Time of peak I1: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
-  tpeak=np.argmax(sol_i2,axis=1)*delta_t-time_int
+  tpeak=np.argmax(soln[:,:,3],axis=1)*delta_t-time_int
   print('Time of peak I2: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
-  tpeak=np.argmax(sol_i3,axis=1)*delta_t-time_int
+  tpeak=np.argmax(soln[:,:,4],axis=1)*delta_t-time_int
   print('Time of peak I3: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
   
   # Time when all the infections go extinct
-  time_all_extinct = np.array(get_extinction_time(sol_c,0))*delta_t-time_int
+  time_all_extinct = np.array(get_extinction_time(all_cases,0))*delta_t-time_int
 
   print('Time of extinction of all infections post intervention: {:4.2f} days  [{:4.2f}, {:4.2f}]'.format(
       np.average(time_all_extinct),np.percentile(time_all_extinct,loCI),np.percentile(time_all_extinct,upCI)))
   
   return
 
-def get_peaks_iter_daily(int=0,loCI=5,upCI=95):
+def get_peaks_iter_daily(soln_inc,int=0,Tint=0,loCI=5,upCI=95):
 
   """
   calculates the peak daily incidence for a multiple runs, with or without an intervention
+  soln_inc: 3D array of values for each iteration for each variable at each timepoint
+  ymax : highest value on y axis, relative to "scale" value (e.g. 0.5 makes ymax=0.5 or 50% for scale=1 or N)
+  scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
+  Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
   """
 
@@ -935,34 +863,31 @@ def get_peaks_iter_daily(int=0,loCI=5,upCI=95):
     time_int=Tint
 
   # Peak incidence
-  peaks=np.amax(soln_inc_i1,axis=1)
+  peaks=np.amax(soln_inc[:,:,2],axis=1)
   print('Peak daily I1: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
-  peaks=np.amax(soln_inc_i2,axis=1)
+  peaks=np.amax(soln_inc[:,:,3],axis=1)
   print('Peak daily I2: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
-  peaks=np.amax(soln_inc_i3,axis=1)
+  peaks=np.amax(soln_inc[:,:,4],axis=1)
   print('Peak daily I3: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
-  peaks=np.amax(soln_inc_d,axis=1)
+  peaks=np.amax(soln_inc[:,:,5],axis=1)
   print('Peak daily deaths: {:4.2f}% [{:4.2f}, {:4.2f}]'.format(
       100 * np.average(peaks),100 * np.percentile(peaks,loCI),100 * np.percentile(peaks,upCI)))
 
   # Timing of peak incidence  
-  tpeak=np.argmax(soln_inc_i1,axis=1)+1.0-time_int
+  tpeak=np.argmax(soln_inc[:,:,2],axis=1)+1.0-time_int
   print('Time of peak I1: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
-  tpeak=np.argmax(soln_inc_i2,axis=1)+1.0-time_int
+  tpeak=np.argmax(soln_inc[:,:,3],axis=1)+1.0-time_int
   print('Time of peak I2: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
-  tpeak=np.argmax(soln_inc_i3,axis=1)+1.0-time_int
+  tpeak=np.argmax(soln_inc[:,:,4],axis=1)+1.0-time_int
   print('Time of peak I3: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
-  tpeak=np.argmax(soln_inc_d,axis=1)+1.0-time_int
+  tpeak=np.argmax(soln_inc[:,:,5],axis=1)+1.0-time_int
   print('Time of peak deaths: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
       np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
 
   return
-
-
-
