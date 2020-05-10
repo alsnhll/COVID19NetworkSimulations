@@ -778,8 +778,11 @@ def get_extinction_time(sol, t):
     else:
         incomplete_runs += 1
     
-  assert extinction_time != [], 'Extinction did not occur for any of the iterations, run simulation for longer'
+  #assert extinction_time != [], 'Extinction did not occur for any of the iterations, run simulation for longer'
 
+  if extinction_time == []:
+    extinction_time.append(float("inf"))
+  
   if incomplete_runs != 0:
     print('Extinction did not occur during %i iterations'%incomplete_runs)
 
