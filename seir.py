@@ -251,7 +251,7 @@ def simulate_intervention(
 
   return key, state, state_timer, states_cumulative, history
 
-def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
+def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
   """
   plots the output (prevalence) from a single simulation, with or without an intervention
   history: 2D array of values for each variable at each timepoint
@@ -260,6 +260,8 @@ def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
  
   plt.figure(figsize=(2*6.4, 4.0))
@@ -282,9 +284,11 @@ def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   plt.xlabel("Time (days)")
   plt.ylabel("Number")
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
-def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0):
+def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
   """
   plots the output (cumulative prevalence) from a single simulation, with or without an intervention
   cumulative_history: 2D array of values for each variable at each timepoint
@@ -293,6 +297,8 @@ def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0
   scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   plt.figure(figsize=(2*6.4, 4.0))
@@ -315,6 +321,8 @@ def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0
   plt.xlabel("Time (days)")
   plt.ylabel("Cumulative number")
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_daily(cumulative_history,tvec):
@@ -339,7 +347,7 @@ def get_daily(cumulative_history,tvec):
   return daily_incidence
 
 
-def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0):
+def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
   """
   plots the output (daily incidence) from a single simulation, with or without an intervention
   daily_incidence: 2D array of values for each variable at each timepoint
@@ -347,6 +355,8 @@ def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0):
   scale: Optional, amount to multiple all frequency values by (e.g. "1" keeps as frequency, "n" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   tvec=np.arange(1,len(daily_incidence)+1)
@@ -371,6 +381,8 @@ def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0):
   plt.xlabel("Time (days)")
   plt.ylabel("Daily incidence")
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_peaks_single(history,tvec,int=0,Tint=0):
@@ -459,7 +471,7 @@ def get_peaks_single_daily(daily_incidence,int=0,Tint=0):
 
   return
 
-def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0):
+def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
 
   """
   plots the output (prevalence) from a multiple simulation, with or without an intervention. Shows all trajectories
@@ -470,6 +482,8 @@ def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   number_trials=np.shape(soln)[0]
@@ -499,9 +513,11 @@ def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   plt.ylabel("Number")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
-def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0):
+def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows all trajectories
@@ -512,6 +528,8 @@ def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   number_trials=np.shape(soln_cum)[0]
@@ -540,9 +558,11 @@ def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0):
   plt.ylabel("Cumulative number")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
-def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
+def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95,plotThis=False,plotName="test"):
 
   """
   plots the output (prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
@@ -554,6 +574,8 @@ def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   soln_avg=np.average(soln,axis=0)
@@ -592,9 +614,11 @@ def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
   plt.ylabel("Number")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
-def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95):
+def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95,plotThis=False,plotName="test"):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
@@ -602,6 +626,8 @@ def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   soln_avg=np.average(soln_cum,axis=0)
@@ -640,6 +666,8 @@ def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=
   plt.ylabel("Cumulative number")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_daily_iter(soln_cum,tvec):
@@ -667,7 +695,7 @@ def get_daily_iter(soln_cum,tvec):
 
   return soln_inc
 
-def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1):
+def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,plotThis=False,plotName="test"):
 
   """
   plots the output (daily incidence) from a multiple simulation, with or without an intervention. Shows all trajectories
@@ -678,6 +706,8 @@ def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1):
   scale: amount to multiple all frequency values by (e.g. "1" keeps as frequency, "N" turns to absolute values)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   number_trials=np.shape(soln_inc)[0]
@@ -709,9 +739,11 @@ def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1):
   plt.ylabel("Daily incidence")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
-def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95):
+def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95,plotThis=False,plotName="test"):
 
   """
   plots the output (cumulative prevalence) from a multiple simulation, with or without an intervention. Shows mean and 95% CI
@@ -723,6 +755,8 @@ def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95)
   int: Optional, 1 or 0 for whether or not there was an intervention. Defaults to 0
   Tint: Optional, timepoint (days) at which intervention was started
   loCI,upCI: Optional, upper and lower percentiles for confidence intervals. Defaults to 90% interval
+  plotThis: True or False, whether a plot will be saved as pdf 
+  plotName: string, name of the plot to be saved
   """
 
   tvec=np.arange(1,np.shape(soln_inc)[1]+1)
@@ -763,6 +797,8 @@ def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95)
   plt.ylabel("Daily incidence")
   plt.semilogy()
   plt.tight_layout()
+  if plotThis==True:
+  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_extinction_time(sol, t):
