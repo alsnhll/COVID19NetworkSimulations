@@ -932,11 +932,11 @@ def get_peaks_iter_daily(soln_inc,int=0,Tint=0,loCI=5,upCI=95):
   return
 
   def smooth_timecourse(soln,o):
-  '''
+  """
   replaces each entry with the moving average over time
   soln: solution vector, 3D array, to smooth. Assumes time is second dimension
   o: # of days (entries) on either side of the current value to average over. o=3 -> 1 week
-  '''
+  """
   soln_smooth=soln
   for iter in range(np.shape(soln)[0]):
     for var in range(np.shape(soln)[2]):
@@ -945,10 +945,10 @@ def get_peaks_iter_daily(soln_inc,int=0,Tint=0,loCI=5,upCI=95):
   return soln_smooth
 
   def moving_average(x, o):
-  '''
+  """
   x: array to take moving average og
   o: # of days (entries) on either side of the current value to average over
-  '''
+  """
   w=o*2+1 # width of window to average over, current day in center of window
   y=np.convolve(x, np.ones(w), 'full')
   den=np.concatenate((np.arange(o+1,w),w*np.ones(len(x)-w+1),np.arange(w-1,o,step=-1)))
