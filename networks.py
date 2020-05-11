@@ -154,5 +154,5 @@ def create_friend_groups(pop,para,age_grp_size,indices):
         pop_group += size
 
     group_sizes[-1] -= pop_group-age_grp_size
-    sparse_matrix = create_groups(pop,group_sizes,indices)
+    sparse_matrix = create_fully_connected(pop,group_sizes,indices)
     return sparse_matrix
