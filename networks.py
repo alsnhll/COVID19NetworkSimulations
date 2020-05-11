@@ -4,11 +4,9 @@ import math
 import itertools
 import scipy.stats as ss
 
-def create_fully_connected(pop, dist_groups, indices):
+def create_fully_connected(dist_groups, indices):
     """ Divide the subset of the total population as given by the indices into fully connected groups 
     depending upon their distribution of sizes.
-    @param pop : Total size of the population
-    @type : int
     @param dist_groups : Sizes of the groups in the population
     @type : list or 1D array
     @param indices : Indices of the subset of the population to be grouped together
@@ -130,10 +128,8 @@ def create_external_corr(pop,pop_subset,degree_dist,n,r,indx_list,correlation_gr
                 data.extend([1,1])
     return [rows, cols, data]
     
-def create_friend_groups(pop,para,age_grp_size,indices):
+def create_friend_groups(para,age_grp_size,indices):
     """ Create age dependent distributions of sizes of friend groups and assign individuals to them
-    @param pop : Total size of the population
-    @type : int
     @param para : List of parameters for the negative binomial distribution [n,p]
     @type : list
     @param age_grp_size : Number of individuals in an age group
@@ -154,5 +150,5 @@ def create_friend_groups(pop,para,age_grp_size,indices):
         pop_group += size
 
     group_sizes[-1] -= pop_group-age_grp_size
-    sparse_matrix = create_fully_connected(pop,group_sizes,indices)
+    sparse_matrix = create_fully_connected(group_sizes,indices)
     return sparse_matrix
