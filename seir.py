@@ -954,3 +954,32 @@ def moving_average(x, o):
   den=np.concatenate((np.arange(o+1,w),w*np.ones(len(x)-w+1),np.arange(w-1,o,step=-1)))
   z=y[o:-o]/den
   return z
+
+def prob_inf_house_size_iter(state, hh_sizes_, house_dist):
+  """ Function that computes the probability of an individual getting infected given their household size.
+  @param state : A Device Array that encodes the state of each individual in the population at the end of each iteration of the simulation
+  @type : Device Array of shape (# of iterations, population size)
+  @param hh_sizes_ : An array which keeps track of the size of each individual's household
+  @type : Array of length = population size
+  @param house_dist : Distribution of household sizes 
+  @type : List or 1D array
+  @return : Returns the probability of infection given household size and the mean probability of infection
+  @type : Tuple
+  """
+  hh_sizes = np.asarray(hh_sizes_)
+  iterations = len(state)
+  prob_hh_size = np.zeros((iterations, len(house_dist)))
+  pop = len(state[0])
+  mean_inf_prob = np.zeros(iterations)
+  
+  # First compute the probability of the household size given that the person was infected and then use Bayes rule
+  for i in range(iterations):
+    if_inf = np.where(state[i] > 0)[0]
+    inf_size = len(if_inf)
+    hh_inf = hh_sizes[if_inf]
+    prob = ((np.array(np.unique(hh_inf, return_counts= True))[-1])/inf_size) * (inf_size/pop) * (1/house_dist) # Bayes rule
+    prob_hh_size = index_add(prob_hh_size, i, prob)
+    mean_inf_prob = index_add(mean_inf_prob, i, inf_size/pop)
+
+  # Returns the probability of infection given household size
+  return np.average(prob_hh_size, axis = 0) , np.average(mean_inf_prob)
