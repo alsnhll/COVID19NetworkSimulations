@@ -867,14 +867,14 @@ def get_peaks_iter(soln,tvec,int=0,Tint=0,loCI=5,upCI=95):
   
   # Timing of peaks
   tpeak=np.argmax(soln[:,:,2],axis=1)*delta_t-time_int
-  print('Time of peak I1: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
+  print('Time of peak I1: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak), np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
   tpeak=np.argmax(soln[:,:,3],axis=1)*delta_t-time_int
-  print('Time of peak I2: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
+  print('Time of peak I2: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
   tpeak=np.argmax(soln[:,:,4],axis=1)*delta_t-time_int
-  print('Time of peak I3: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
+  print('Time of peak I3: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,loCI),np.percentile(tpeak,upCI)))
   
   # Time when all the infections go extinct
   time_all_extinct = np.array(get_extinction_time(all_cases,0))*delta_t-time_int
@@ -917,17 +917,17 @@ def get_peaks_iter_daily(soln_inc,int=0,Tint=0,loCI=5,upCI=95):
 
   # Timing of peak incidence  
   tpeak=np.argmax(soln_inc[:,:,2],axis=1)+1.0-time_int
-  print('Time of peak I1: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
+  print('Time of peak I1: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
   tpeak=np.argmax(soln_inc[:,:,3],axis=1)+1.0-time_int
-  print('Time of peak I2: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
+  print('Time of peak I2: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
   tpeak=np.argmax(soln_inc[:,:,4],axis=1)+1.0-time_int
-  print('Time of peak I3: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
+  print('Time of peak I3: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
   tpeak=np.argmax(soln_inc[:,:,5],axis=1)+1.0-time_int
-  print('Time of peak deaths: {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
-      np.average(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
+  print('Time of peak deaths: avg {:4.2f} days, median {:4.2f} days [{:4.2f}, {:4.2f}]'.format(
+      np.average(tpeak),np.median(tpeak),np.percentile(tpeak,5.0),np.percentile(tpeak,95.0)))
 
   return
 
