@@ -983,3 +983,74 @@ def prob_inf_house_size_iter(state, hh_sizes_, house_dist):
 
   # Returns the probability of infection given household size
   return np.average(prob_hh_size, axis = 0) , np.average(mean_inf_prob)
+
+def prob_inf_workplace_open(indx_active, state):
+  """ Function that computes the probability of infection for an individual who is still working during intervention.
+  @param indx_active : Numpy array with indices of individuals still working during intervention
+  @type : 1D array
+  @param state : A Device Array that encodes the state of each individual in the population at the end of each iteration of the simulation
+  @type : Device Array of shape (# of iterations, population size)
+  @return : Returns the probability of infection for individuals working during intervention and the population average, averaged over the number of iterations
+  @type : Tuple
+  """
+  iterations = len(state)
+  prob_inf_work = np.zeros(iterations)
+  pop = len(state[0])
+  mean_inf_prob = np.zeros(iterations)
+
+  for i in range(iterations):
+
+    # Get indices of infected people
+    if_inf = np.where(state[i] > 0)[0]
+    inf_size = len(if_inf)
+    
+    # Calculate the conditional probability
+    prob = (sum(np2.isin(indx_active, if_inf))/inf_size) * (inf_size/pop) * (pop/len(indx_active))
+    prob_inf_work = index_add(prob_inf_work, i, prob)
+    mean_inf_prob = index_add(mean_inf_prob, i, inf_size/pop)
+
+  return np.average(prob_inf_work), np.average(mean_inf_prob)
+
+def prob_inf_working_hh_member(indx_active, state, house_indices, household_sizes):
+    """ Function that computes the probability of infection for an individual who is living with a household member working during intervention.
+    @param indx_active : Numpy array with indices of individuals still working during intervention
+    @type : 1D array
+    @param state : A Device Array that encodes the state of each individual in the population at the end of each iteration of the simulation
+    @type : Device Array of shape (# of iterations, population size)
+    @param house_indices : Numpy array that keeps track of the house an individual belongs to
+    @type : 1D array
+    @param household_sizes : Numpy array that keeps track of the size of each individual's household
+    @type : 1D array
+    @return : Returns the probability of infection for individuals living with working household members and the population average, averaged over the number of iterations
+    @type : Tuple
+    """
+    iterations = len(state)
+    prob_inf = np.zeros(iterations)
+    pop = len(state[0])
+    mean_inf_prob = np.zeros(iterations)
+
+    for i in range(iterations):
+
+        # Get indices of infected people
+        if_inf = np.where(state[i] > 0)[0]
+        inf_size = len(if_inf)
+
+        # Houses of people who are still working 
+        house_working = np2.unique(house_indices[indx_active])
+        
+        # Indices of all people who aren't working and their house index
+        not_working = np2.setdiff1d(np2.arange(0, pop, 1), indx_active)
+        house_not_working = house_indices[not_working]
+
+        prob_house_working = (sum(np2.isin(house_not_working, house_working))/pop)
+
+        # Indices of infected people who aren't working and their house index
+        if_inf_not_working = np2.setdiff1d(if_inf, indx_active)
+        house_inf_not_working = house_indices[if_inf_not_working]
+
+        # Probability of infection given atleast one hh member was working during intervention
+        prob = (sum(np2.isin(house_inf_not_working, house_working))/inf_size) * (inf_size/pop) * (1/prob_house_working)
+        prob_inf = index_add(prob_inf, i, prob)
+        mean_inf_prob = index_add(mean_inf_prob, i, inf_size/pop)
+
+    return np.average(prob_inf), np.average(mean_inf_prob)
