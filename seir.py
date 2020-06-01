@@ -13,6 +13,7 @@ from jax import random
 from jax.lax import fori_loop
 from jax.nn import relu
 import jax.numpy as np
+import numpy as np2
 from jax.ops import index_add, index_update, index
 import tqdm
 import matplotlib.pyplot as plt
