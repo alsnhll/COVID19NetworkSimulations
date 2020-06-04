@@ -8,7 +8,7 @@ We direct users to the iPython notebook, Examples_UniformRandomNetwork.ipynb as 
 
 ## Contents
 * networks.py : This file contains functions for the network creation code for both the two and five layer networks.
-* seir.py : Contains functions to simulate stochastic SEIR COVID-19 dynamics on a weighted, directed graph. The code is implemented in JAX, a framework for generating high-performance code optimized to run on GPUs. This file also contains different plotting functions and functions that calculate times to peak infection levels.
+* seir.py : Contains functions to simulate stochastic SEIR COVID-19 dynamics on a weighted, directed graph. The code is implemented in JAX, a framework for generating high-performance code optimized to run on GPUs. This file also contains different plotting functions and functions that calculate times to peak infection levels and individual risks of infection.
 * Wellmixed_sim.ipynb : We used this iPython notebook to analyse COVID-19 dynamics pre and post intervention in well-mixed populations. This was used to generate Figure 2 in the main text.
 * Two_layer_network_sim.ipynb : This iPython notebook was used to analyse the effects of household transmission using the two layer network. Figures 3,4 and 6A in the main text were generated from this file.
 * Five_layer_network_sim.ipynb : This iPython notebook was used to analyse the effects of clustered adoption of social distancing measures using the five layer network. Figures 5 and 6B in the main text were generated using this file.
