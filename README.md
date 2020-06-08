@@ -13,4 +13,4 @@ We direct users to the iPython notebook, Examples_UniformRandomNetwork.ipynb as 
 * Two_layer_network_sim.ipynb : This iPython notebook was used to analyse the effects of household transmission using the two layer network. Figures 3,4 and 6A in the main text were generated from this file.
 * Five_layer_network_sim.ipynb : This iPython notebook was used to analyse the effects of clustered adoption of social distancing measures using the five layer network. Figures 5 and 6B in the main text were generated using this file.
 * Relaxing_intervention.ipynb : We used this iPython notebook to analyse the effects of relaxing intervention by merging households. This uses the two layer network and was used to generate Figure 7 in the main text.
-* CitiesData.xlsx : Contains the COVID-19 count data used to generate Figure 1 in the maint text.
+* CitiesData.xlsx : Contains the COVID-19 count data used to generate Figure 1 in the main text.
