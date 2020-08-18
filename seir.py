@@ -286,7 +286,7 @@ def plot_single(history,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotNa
   plt.ylabel("Number")
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
@@ -323,7 +323,7 @@ def plot_single_cumulative(cumulative_history,tvec,n,ymax=1,scale=1,int=0,Tint=0
   plt.ylabel("Cumulative number")
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_daily(cumulative_history,tvec):
@@ -383,7 +383,7 @@ def plot_single_daily(daily_incidence,n,ymax=1,scale=1,int=0,Tint=0,plotThis=Fal
   plt.ylabel("Daily incidence")
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_peaks_single(history,tvec,int=0,Tint=0):
@@ -515,7 +515,7 @@ def plot_iter(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="t
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=False,plotName="test"):
@@ -560,7 +560,7 @@ def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=Fa
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95,plotThis=False,plotName="test"):
@@ -616,7 +616,7 @@ def plot_iter_shade(soln,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95,plotT
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=5,upCI=95,plotThis=False,plotName="test"):
@@ -668,7 +668,7 @@ def plot_iter_cumulative_shade(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,loCI=
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_daily_iter(soln_cum,tvec):
@@ -741,7 +741,7 @@ def plot_iter_daily(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,plotThis=False,plotNa
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95,plotThis=False,plotName="test"):
@@ -799,7 +799,7 @@ def plot_iter_daily_shade(soln_inc,n,ymax=1,scale=1,int=0,Tint=1,loCI=5,upCI=95,
   plt.semilogy()
   plt.tight_layout()
   if plotThis==True:
-  	plt.savefig('/content/gdrive/My Drive/COVID19 Network Simulations/figures/'+plotName+'.pdf',bbox_inches='tight')
+  	plt.savefig(plotName+'.pdf',bbox_inches='tight')
   plt.show()
 
 def get_extinction_time(sol, t):
