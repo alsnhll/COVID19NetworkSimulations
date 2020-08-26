@@ -540,7 +540,7 @@ def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=Fa
   for i in range(number_trials):
     plt.gca().set_prop_cycle(None)
     plt.plot(tvec,soln_cum[i,:,:]*scale)
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'R', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
       plt.plot([Tint,Tint],[0,ymax*scale],'k--')
   plt.ylim([0,ymax*scale])
@@ -551,7 +551,7 @@ def plot_iter_cumulative(soln_cum,tvec,n,ymax=1,scale=1,int=0,Tint=0,plotThis=Fa
   for i in range(number_trials):
     plt.gca().set_prop_cycle(None)
     plt.plot(tvec,soln_cum[i,:,:]*scale)
-  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'RD'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
+  plt.legend(['S', 'E', 'I1', 'I2', 'I3', 'D', 'R'],frameon=False,framealpha=0.0,bbox_to_anchor=(1.04,1), loc="upper left")
   if int==1:
     plt.plot([Tint,Tint],[scale/n,ymax*scale],'k--')
   plt.ylim([scale/n,ymax*scale])
