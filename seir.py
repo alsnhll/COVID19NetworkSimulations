@@ -54,13 +54,6 @@ def interaction_sampler(key, w):
   return key, random.bernoulli(subkey, w).astype(np.int32)
 
 
-def eval_fn(t, state, state_timer, states_cumulative, history):
-    del t, state_timer
-    history.append([np.mean(to_one_hot(state), axis=0),
-                    np.mean(states_cumulative, axis=0)])
-    return history
-
-
 @functools.partial(jit, static_argnums=(3, 4, 5))
 def interaction_step(key, state, state_timer, w, infection_probabilities,
                      state_length_sampler):
@@ -178,13 +171,21 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
   else:
     break_fn = lambda *args, **kwargs: False
   
+  def eval_fn(t, state, state_timer, states_cumulative, history):
+    del t, state_timer
+    history.append([np.mean(to_one_hot(state), axis=0),
+                    np.mean(states_cumulative, axis=0)])
+    return history
+  
   @jit
   def step(t, args):
     del t
     key, state, state_timer, states_cumulative = args
-
-    key, state, state_timer = interaction_step_(key, state, state_timer, w, infection_probabilities, state_length_sampler)
-    key, state, state_timer = developing_step(key, state, state_timer, recovery_probabilities, state_length_sampler)
+    key, state, state_timer = interaction_step_(
+        key, state, state_timer, w, infection_probabilities,
+        state_length_sampler)
+    key, state, state_timer = developing_step(
+        key, state, state_timer, recovery_probabilities, state_length_sampler)
     states_cumulative = np.logical_or(to_one_hot(state), states_cumulative)
     return key, state, state_timer, states_cumulative
 
