@@ -54,6 +54,13 @@ def interaction_sampler(key, w):
   return key, random.bernoulli(subkey, w).astype(np.int32)
 
 
+def eval_fn(t, state, state_timer, states_cumulative, history):
+    del t, state_timer
+    history.append([np.mean(to_one_hot(state), axis=0),
+                    np.mean(states_cumulative, axis=0)])
+    return history
+
+
 @functools.partial(jit, static_argnums=(3, 4, 5))
 def interaction_step(key, state, state_timer, w, infection_probabilities,
                      state_length_sampler):
@@ -102,6 +109,23 @@ def developing_step(key, state, state_timer, recovery_probabilities,
   return (key,
           state * (1 - to_develop) + new_state * to_develop,
           state_timer * (1 - to_develop) + new_state_timer * to_develop)
+
+@jit
+def step(t, args):
+  del t
+  w, key, state, state_timer, states_cumulative = args
+
+  interaction_step_ = interaction_step
+  if isinstance(w, list):
+    interaction_step_ = sparse_interaction_step
+
+  key, state, state_timer = interaction_step_(
+        key, state, state_timer, w, infection_probabilities,
+        state_length_sampler)
+  key, state, state_timer = developing_step(
+        key, state, state_timer, recovery_probabilities, state_length_sampler)
+  states_cumulative = np.logical_or(to_one_hot(state), states_cumulative)
+  return w, key, state, state_timer, states_cumulative
 
 
 def simulate(w, total_steps, state_length_sampler, infection_probabilities,
@@ -162,33 +186,13 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
 
   if isinstance(key, int):
     key = random.PRNGKey(key)
-
-  interaction_step_ = interaction_step
-  if isinstance(w, list):
-    interaction_step_ = sparse_interaction_step
+    
     
   if isinstance(total_steps, tuple):
     total_steps, break_fn = total_steps
   else:
     break_fn = lambda *args, **kwargs: False
 
-  def eval_fn(t, state, state_timer, states_cumulative, history):
-    del t, state_timer
-    history.append([np.mean(to_one_hot(state), axis=0),
-                    np.mean(states_cumulative, axis=0)])
-    return history
-
-  @jit
-  def step(t, args):
-    del t
-    key, state, state_timer, states_cumulative = args
-    key, state, state_timer = interaction_step_(
-        key, state, state_timer, w, infection_probabilities,
-        state_length_sampler)
-    key, state, state_timer = developing_step(
-        key, state, state_timer, recovery_probabilities, state_length_sampler)
-    states_cumulative = np.logical_or(to_one_hot(state), states_cumulative)
-    return key, state, state_timer, states_cumulative
 
   state, state_timer = init_state, init_state_timer
   if states_cumulative is None:
@@ -198,8 +202,8 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
   epochs = int(total_steps // epoch_len)
   history = []
   for epoch in tqdm.tqdm(range(epochs), total=epochs, position=0):
-    key, state, state_timer, states_cumulative = fori_loop(
-        0, epoch_len, step, (key, state, state_timer, states_cumulative))
+    w, key, state, state_timer, states_cumulative = fori_loop(
+        0, epoch_len, step, (w, key, state, state_timer, states_cumulative))
     history = eval_fn(
         epoch*epoch_len, state, state_timer, states_cumulative, history)
     if break_fn(
