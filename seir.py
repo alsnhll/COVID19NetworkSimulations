@@ -127,7 +127,6 @@ def step(t, args):
   states_cumulative = np.logical_or(to_one_hot(state), states_cumulative)
   return w, key, state, state_timer, states_cumulative
 
-
 def simulate(w, total_steps, state_length_sampler, infection_probabilities,
              recovery_probabilities, init_state, init_state_timer, key=0,
              epoch_len=1, states_cumulative=None):
@@ -209,6 +208,7 @@ def simulate(w, total_steps, state_length_sampler, infection_probabilities,
     if break_fn(
         epoch*epoch_len, state, state_timer, states_cumulative, history):
       break
+
 
   return key, state, state_timer, states_cumulative, history
 
