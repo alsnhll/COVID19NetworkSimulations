@@ -119,11 +119,8 @@ def step(t, args):
   if isinstance(w, list):
     interaction_step_ = sparse_interaction_step
 
-  key, state, state_timer = interaction_step_(
-        key, state, state_timer, w, infection_probabilities,
-        state_length_sampler)
-  key, state, state_timer = developing_step(
-        key, state, state_timer, recovery_probabilities, state_length_sampler)
+  key, state, state_timer = interaction_step_(key, state, state_timer, w, infection_probabilities, state_length_sampler)
+  key, state, state_timer = developing_step(key, state, state_timer, recovery_probabilities, state_length_sampler)
   states_cumulative = np.logical_or(to_one_hot(state), states_cumulative)
   return w, key, state, state_timer, states_cumulative
 
