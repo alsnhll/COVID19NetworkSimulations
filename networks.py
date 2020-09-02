@@ -147,8 +147,10 @@ def create_friend_groups(para,age_grp_size,indices):
     pop_group = 0
     n = para[0]
     p = para[1]
+    
+    np2.random.seed(789)
     while pop_group <= age_grp_size:
-        size = ss.nbinom.rvs(n,p)
+        size = np2.random.negative_binomial(n,p, size=1)
         group_sizes.append(size)
         pop_group += size
 
