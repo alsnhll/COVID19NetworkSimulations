@@ -46,7 +46,9 @@ def create_external(pop,degree_dist):
     for i in range(pop):
         stubs = degree_dist[i]
         external_stubs.extend([i for j in range(stubs)])
-      
+    
+    # Fix the seed
+    np2.random.seed(789)
     # Attach the random stubs        
     external_pairs = np2.random.choice(external_stubs, size = (int(len(external_stubs)/2),2), replace = False)
     for pairs in range(len(external_pairs)):
