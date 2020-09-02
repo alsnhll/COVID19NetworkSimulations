@@ -81,8 +81,9 @@ def create_external_corr(pop,pop_subset,degree_dist,n,r,indx_list,correlation_gr
     """
     # Assign random and correlated stubs for each individual
     correlation = []
+    np2.random.seed(789)
     for i in range(pop_subset):
-        correlation.append(ss.bernoulli.rvs(r, size = degree_dist[i]))
+        correlation.append(np2.random.binomial(1, r, size = degree_dist[i]))
     # Create external stubs that are randomly connected and the ones that are correlated for age groups
     rows = []
     cols = []
@@ -146,8 +147,10 @@ def create_friend_groups(para,age_grp_size,indices):
     pop_group = 0
     n = para[0]
     p = para[1]
+    
+    np2.random.seed(789)
     while pop_group <= age_grp_size:
-        size = ss.nbinom.rvs(n,p)
+        size = np2.random.negative_binomial(n,p, size=1)
         group_sizes.append(size)
         pop_group += size
 
