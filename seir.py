@@ -345,7 +345,7 @@ def get_daily(cumulative_history,tvec):
   total_steps=int(Tmax/delta_t)
 
   # first pick out entries corresponding to each day
-  per_day=round(1/delta_t) # number of entries per day
+  per_day=int(round(1/delta_t)) # number of entries per day
   days_ind=np.arange(start=0,stop=total_steps,step=per_day)
   daily_cumulative_history=cumulative_history[days_ind,:]
   
@@ -692,7 +692,7 @@ def get_daily_iter(soln_cum,tvec):
 
   # get daily incidence
 
-  per_day=round(1/delta_t) # number of entries per day
+  per_day=int(round(1/delta_t)) # number of entries per day
   days_ind=np.arange(start=0,stop=total_steps,step=per_day)
 
   soln_inc=np.zeros((np.shape(soln_cum)[0],Tmax-1,np.shape(soln_cum)[2]))
