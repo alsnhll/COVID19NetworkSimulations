@@ -156,7 +156,7 @@ def create_external_different_mixing(pop_subset, p_mixing, degree_dist):
     for neigh in range(no_neigh):
       for i in range(len(pop_subset[neigh])):
        # For eg: 0 - stays in the same neigh, 1 - goes to the next in cyclic order etc
-        stubs = np2.random.choice([j for j in range(no_neigh)], p=r_list[neigh], size = int(degree_dist[neigh][i]))
+        stubs = np2.random.choice([j for j in range(no_neigh)], p=p_mixing[neigh], size = int(degree_dist[neigh][i]))
         stub_indx, stub_counts = np2.unique(stubs, return_counts=True)
         for unique in range(len(stub_counts)):
           stub_types[neigh][stub_indx[unique]].extend([pop_subset[neigh][i] for j in range(stub_counts[unique])])
