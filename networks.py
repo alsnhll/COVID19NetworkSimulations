@@ -132,16 +132,16 @@ def create_external_corr(pop,pop_subset,degree_dist,n,r,indx_list,correlation_gr
     return [rows, cols, data]
 
 def create_external_different_mixing(pop_subset, p_mixing, degree_dist):
-  """ Create external connections where each person has an average probability of interaction with other people in the population depending upon their neighborhood/cluster.
-  @param pop_subset: Contains the individual indices of people belonging to each neighborhood
-  @type pop_subset: List of n lists where n is the number of neighborhoods
-  @param p_mixing: Average probability of having external contacts in each neighborhood
-  @type p_mixing: List of n lists where n is the number of neighborhoods
-  @param degree_dist: Contains the number of external connections for each individual
-  @type degree_dist: List of n lists where n is the number of neighborhoods
-  @return: Sparse adjacency matrix
-  @type: List of lists [rows, cols, data]
-  """
+    """ Create external connections where each person has an average probability of interaction with other people in the population depending upon their neighborhood/cluster.
+    @param pop_subset: Contains the individual indices of people belonging to each neighborhood
+    @type pop_subset: List of n lists where n is the number of neighborhoods
+    @param p_mixing: Average probability of having external contacts in each neighborhood
+    @type p_mixing: List of n lists where n is the number of neighborhoods
+    @param degree_dist: Contains the number of external connections for each individual
+    @type degree_dist: List of n lists where n is the number of neighborhoods
+    @return: Sparse adjacency matrix
+    @type: List of lists [rows, cols, data]
+    """
   
     no_neigh = len(pop_subset)
     correlation = [[] for i in range(no_neigh)]
