@@ -54,7 +54,7 @@ def interaction_sampler(key, w):
   return key, random.bernoulli(subkey, w).astype(np.int32)
 
 
-@functools.partial(jit, static_argnums=(3, 4, 5))
+@functools.partial(jit, static_argnums=(4, 5))
 def interaction_step(key, state, state_timer, w, infection_probabilities,
                      state_length_sampler):
   """Determines new infections from the state and population structure."""
@@ -67,7 +67,7 @@ def interaction_step(key, state, state_timer, w, infection_probabilities,
           state_timer + new_infections * infection_lengths)
 
 
-@functools.partial(jit, static_argnums=(3, 4, 5))
+@functools.partial(jit, static_argnums=(4, 5))
 def sparse_interaction_step(key, state, state_timer, w, infection_probabilities,
                             state_length_sampler):
   """Determines new infections from the state and population structure."""
