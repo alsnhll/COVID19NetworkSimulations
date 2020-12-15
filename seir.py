@@ -54,7 +54,7 @@ def interaction_sampler(key, w):
   return key, random.bernoulli(subkey, w).astype(np.int32)
 
 
-@functools.partial(jit, static_argnums=(3, 4, 5))
+@functools.partial(jit, static_argnums=(5,))
 def interaction_step(key, state, state_timer, w, infection_probabilities,
                      state_length_sampler):
   """Determines new infections from the state and population structure."""
@@ -67,7 +67,7 @@ def interaction_step(key, state, state_timer, w, infection_probabilities,
           state_timer + new_infections * infection_lengths)
 
 
-@functools.partial(jit, static_argnums=(3, 4, 5))
+@functools.partial(jit, static_argnums=(5,))
 def sparse_interaction_step(key, state, state_timer, w, infection_probabilities,
                             state_length_sampler):
   """Determines new infections from the state and population structure."""
@@ -84,7 +84,7 @@ def sparse_interaction_step(key, state, state_timer, w, infection_probabilities,
           state_timer + new_infections * infection_lengths)
 
 
-@functools.partial(jit, static_argnums=(2,))
+@functools.partial(jit, static_argnums=())
 def sample_development(key, state, recovery_probabilities):
   """Individuals who are in a transitional state either progress or recover."""
   key, subkey = random.split(key)
@@ -92,7 +92,7 @@ def sample_development(key, state, recovery_probabilities):
   return key, (state + 1) * (1 - is_recovered) + RECOVERED * is_recovered
 
 
-@functools.partial(jit, static_argnums=(3, 4))
+@functools.partial(jit, static_argnums=(4,))
 def developing_step(key, state, state_timer, recovery_probabilities,
                     state_length_sampler):
   to_develop = np.logical_and(state_timer == 1, is_transitional(state))
