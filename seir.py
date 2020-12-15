@@ -84,7 +84,7 @@ def sparse_interaction_step(key, state, state_timer, w, infection_probabilities,
           state_timer + new_infections * infection_lengths)
 
 
-@functools.partial(jit, static_argnums=(2,))
+@functools.partial(jit, static_argnums=())
 def sample_development(key, state, recovery_probabilities):
   """Individuals who are in a transitional state either progress or recover."""
   key, subkey = random.split(key)
